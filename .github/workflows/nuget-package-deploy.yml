@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Package
-        run: dotnet pack --configuration Release
+        run: dotnet pack --configuration Release WsjtxUdpLib\WsjtxUdpLib.csproj
       - name: Push package to nuget
         run: dotnet nuget push **/*.nupkg
               --api-key ${{ secrets.NUGET_DEPLOY_KEY }}
