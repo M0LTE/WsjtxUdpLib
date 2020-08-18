@@ -1,4 +1,6 @@
-﻿namespace M0LTE.WsjtxUdpLib.Messages
+﻿using System;
+
+namespace M0LTE.WsjtxUdpLib.Messages
 {
     public class StatusMessage : WsjtxMessage
     {
@@ -69,7 +71,84 @@
          */
         public static new WsjtxMessage Parse(byte[] message)
         {
-            return null;
+            if (!CheckMagicNumber(message))
+            {
+                return null;
+            }
+
+            var statusMessage = new StatusMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+            statusMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+
+            int messageType = DecodeQInt32(message, ref cur);
+
+            if (messageType != STATUS_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            statusMessage.Id = DecodeString(message, ref cur);
+            statusMessage.DialFrequency = DecodeQUInt64(message, ref cur);
+            statusMessage.Mode = DecodeString(message, ref cur);
+            statusMessage.DxCall = DecodeString(message, ref cur);
+            statusMessage.Report = DecodeString(message, ref cur);
+            statusMessage.TxMode = DecodeString(message, ref cur);
+            statusMessage.TxEnabled = DecodeBool(message, ref cur);
+            statusMessage.Transmitting = DecodeBool(message, ref cur);
+            statusMessage.Decoding = DecodeBool(message, ref cur);
+            statusMessage.RxDF = DecodeQUInt32(message, ref cur);
+            statusMessage.TxDF = DecodeQUInt32(message, ref cur);
+            statusMessage.DeCall = DecodeString(message, ref cur);
+            statusMessage.DeGrid = DecodeString(message, ref cur);
+            statusMessage.DxGrid = DecodeString(message, ref cur);
+            statusMessage.TxWatchdog = DecodeBool(message, ref cur);
+            statusMessage.Submode = DecodeString(message, ref cur);
+            statusMessage.FastMode = DecodeBool(message, ref cur);
+            statusMessage.SpecialOperationMode = (SpecialOperationMode)DecodeQUInt8(message, ref cur);
+            statusMessage.FrequencyTolerance = DecodeNullableQUInt32(message, ref cur);
+            statusMessage.TRPeriod = DecodeNullableQUInt32(message, ref cur);
+            statusMessage.ConfigurationName = DecodeString(message, ref cur);
+
+            return statusMessage;
         }
+
+        public int SchemaVersion { get; set; }
+        public string Id { get; set; }
+        public ulong DialFrequency { get; set; }
+        public string Mode { get; set; }
+        public string DxCall { get; set; }
+        public string Report { get; set; }
+        public string TxMode { get; set; }
+        public bool TxEnabled { get; set; }
+        public bool Transmitting { get; set; }
+        public bool Decoding { get; set; }
+        public UInt32 RxDF { get; set; }
+        public UInt32 TxDF { get; set; }
+        public string DeCall { get; set; }
+        public string DeGrid { get; set; }
+        public string DxGrid { get; set; }
+        public bool TxWatchdog { get; set; }
+        public string Submode { get; set; }
+        public bool FastMode { get; set; }
+        public SpecialOperationMode SpecialOperationMode { get; set; }
+        public uint? FrequencyTolerance { get; set; }
+        public uint? TRPeriod { get; set; }
+        public string ConfigurationName { get; set; }
+
+        public override string ToString() 
+            => $"Status   dialFrequency:{DialFrequency} mode:{Mode} dxCall:{DxCall} report:{Report} txMode:{TxMode} txEnabled:{TxEnabled} transmitting:{Transmitting} decoding:{Decoding} rxDf:{RxDF} txDf:{TxDF} deCall:{DeCall} deGrid:{DeGrid} dxGrid:{DxGrid} txWatchdog:{TxWatchdog} subMode:{Submode} fastMode:{FastMode} specialOperationsMode:{SpecialOperationMode} freqTolerance:{FrequencyTolerance} trPeriod:{TRPeriod} configName:{ConfigurationName}";
+    }
+
+    public enum SpecialOperationMode : byte
+    {
+        None,
+        NaVhf,
+        EuVhf,
+        FieldDay,
+        RttyRu,
+        WwDigi,
+        Fox,
+        Hound
     }
 }

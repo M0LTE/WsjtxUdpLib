@@ -13,7 +13,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
     public class CloseMessage : WsjtxMessage, IWsjtxCommandMessageGenerator
     {
-        public static new WsjtxMessage Parse(byte[] message) => null;
+        public static new WsjtxMessage Parse(byte[] message) => new CloseMessage();
 
         public byte[] GetBytes() => throw new NotImplementedException();
     }

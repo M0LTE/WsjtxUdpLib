@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace M0LTE.WsjtxUdpLib.Messages
 {
@@ -128,6 +129,21 @@ namespace M0LTE.WsjtxUdpLib.Messages
         /// </summary>
         public bool OffAir { get; set; }
 
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append("Decode   ");
+            sb.Append($"{Col(SinceMidnight, 8, Align.Left)} ");
+            sb.Append($"{Col(Snr, 3, Align.Right)} ");
+            sb.Append($"{Col(DeltaFrequency, 4, Align.Right)} ");
+            sb.Append($"{Col(DeltaTime, 4, Align.Right)} ");
+            sb.Append($"{Col(Mode, 1, Align.Left)} ");
+            sb.Append($"{(LowConfidence ? "LC" : "  ")} ");
+            sb.Append($"{Col(Message, 20, Align.Left)} ");
+
+            return sb.ToString();
+        }
+
         public static new WsjtxMessage Parse(byte[] message)
         {
             if (!CheckMagicNumber(message))
@@ -137,26 +153,26 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
             var decodeMessage = new DecodeMessage();
 
-            int cur = 4; // length of magic number, to skip over
-            decodeMessage.SchemaVersion = GetInt32(message, ref cur);
+            int cur = MAGIC_NUMBER_LENGTH;
+            decodeMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            int messageType = GetInt32(message, ref cur);
+            int messageType = DecodeQInt32(message, ref cur);
 
             if (messageType != DECODE_MESSAGE_TYPE)
             {
                 return null;
             }
 
-            decodeMessage.Id = GetString(message, ref cur);
-            decodeMessage.New = GetBool(message, ref cur);
-            decodeMessage.SinceMidnight = TimeSpan.FromMilliseconds(GetInt32(message, ref cur));
-            decodeMessage.Snr = GetInt32(message, ref cur);
-            decodeMessage.DeltaTime = GetDouble(message, ref cur);
-            decodeMessage.DeltaFrequency = GetInt32(message, ref cur);
-            decodeMessage.Mode = GetString(message, ref cur);
-            decodeMessage.Message = GetString(message, ref cur);
-            decodeMessage.LowConfidence = GetBool(message, ref cur);
-            decodeMessage.OffAir = GetBool(message, ref cur);
+            decodeMessage.Id = DecodeString(message, ref cur);
+            decodeMessage.New = DecodeBool(message, ref cur);
+            decodeMessage.SinceMidnight = DecodeQTime(message, ref cur);
+            decodeMessage.Snr = DecodeQInt32(message, ref cur);
+            decodeMessage.DeltaTime = DecodeDouble(message, ref cur);
+            decodeMessage.DeltaFrequency = DecodeQInt32(message, ref cur);
+            decodeMessage.Mode = DecodeString(message, ref cur);
+            decodeMessage.Message = DecodeString(message, ref cur);
+            decodeMessage.LowConfidence = DecodeBool(message, ref cur);
+            decodeMessage.OffAir = DecodeBool(message, ref cur);
 
             return decodeMessage;
         }

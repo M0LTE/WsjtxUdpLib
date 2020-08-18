@@ -29,7 +29,7 @@
     {
         public static new WsjtxMessage Parse(byte[] message)
         {
-            return null;
+            return new QsoLoggedMessage();
         }
     }
 }

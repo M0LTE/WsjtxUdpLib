@@ -26,7 +26,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
     public class ClearMessage : WsjtxMessage, IWsjtxCommandMessageGenerator
     {
-        public static new WsjtxMessage Parse(byte[] message) => null;
+        public static new WsjtxMessage Parse(byte[] message) => new ClearMessage();
 
         public byte[] GetBytes() => throw new NotImplementedException();
     }

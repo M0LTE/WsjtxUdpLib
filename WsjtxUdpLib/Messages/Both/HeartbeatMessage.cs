@@ -37,7 +37,40 @@ namespace M0LTE.WsjtxUdpLib.Messages
          *    schema 2 is the highest schema number supported if the Heartbeat
          *    message does not contain the "Maximum schema number" field.
          */
-        public static new WsjtxMessage Parse(byte[] message) => null;
+        public static new WsjtxMessage Parse(byte[] message)
+        {
+            if (!CheckMagicNumber(message))
+            {
+                return null;
+            }
+
+            var heartbeatMessage = new HeartbeatMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+            heartbeatMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+
+            int messageType = DecodeQInt32(message, ref cur);
+
+            if (messageType != HEARTBEAT_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            heartbeatMessage.Id = DecodeString(message, ref cur);
+            heartbeatMessage.MaxSchemaNumber = DecodeQUInt32(message, ref cur);
+            heartbeatMessage.Version = DecodeString(message, ref cur);
+            heartbeatMessage.Revision = DecodeString(message, ref cur);
+
+            return heartbeatMessage;
+        }
+
+        public int SchemaVersion { get; set; }
+        public string Id { get; set; }
+        public uint MaxSchemaNumber { get; set; }
+        public string Version { get; set; }
+        public string Revision { get; set; }
+
+        public override string ToString() => $"Heartbeat id:{Id} maxSchemaNumber:{MaxSchemaNumber} version:{Version} revision:{Revision}";
 
         public byte[] GetBytes() => throw new NotImplementedException();
     }
