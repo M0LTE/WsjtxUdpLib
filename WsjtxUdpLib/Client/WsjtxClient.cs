@@ -1,5 +1,6 @@
 ﻿using M0LTE.WsjtxUdpLib.Messages;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -26,7 +27,18 @@ namespace M0LTE.WsjtxUdpLib.Client
             {
                 byte[] datagram = udpClient.Receive(ref from);
 
-                var msg = WsjtxMessage.Parse(datagram);
+                WsjtxMessage msg;
+
+                try
+                {
+                    msg = WsjtxMessage.Parse(datagram);
+                }
+                catch (ParseFailureException ex)
+                {
+                    File.WriteAllBytes($"{ex.MessageType}.couldnotparse.bin", ex.Datagram);
+                    Console.WriteLine($"Parse failure for {ex.MessageType}: {ex.InnerException.Message}");
+                    continue;
+                }
 
                 if (msg != null)
                 {

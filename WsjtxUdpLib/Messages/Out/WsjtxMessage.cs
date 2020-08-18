@@ -1,20 +1,24 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 
 namespace M0LTE.WsjtxUdpLib.Messages
 {
+    public enum MessageType
+    {
+        HEARTBEAT_MESSAGE_TYPE = 0,
+        STATUS_MESSAGE_TYPE = 1,
+        DECODE_MESSAGE_TYPE = 2,
+        CLEAR_MESSAGE_TYPE = 3,
+        QSO_LOGGED_MESSAGE_TYPE = 5,
+        CLOSE_MESSAGE_TYPE = 6,
+        WSPR_DECODE_MESSAGE_TYPE = 10,
+        LOGGED_ADIF_MESSAGE_TYPE = 12,
+    }
+
     public abstract class WsjtxMessage
     {
-        protected const int HEARTBEAT_MESSAGE_TYPE = 0;
-        protected const int STATUS_MESSAGE_TYPE = 1;
-        protected const int DECODE_MESSAGE_TYPE = 2;
-        protected const int CLEAR_MESSAGE_TYPE = 3;
-        protected const int QSO_LOGGED_MESSAGE_TYPE = 5;
-        protected const int CLOSE_MESSAGE_TYPE = 6;
-        protected const int WSPR_DECODE_MESSAGE_TYPE = 10;
-        protected const int LOGGED_ADIF_MESSAGE_TYPE = 12;
-
         protected const int MAGIC_NUMBER_LENGTH = 4;
 
         public static WsjtxMessage Parse(byte[] datagram)
@@ -27,42 +31,49 @@ namespace M0LTE.WsjtxUdpLib.Messages
             int cur = MAGIC_NUMBER_LENGTH;
 
             int schemaVersion = DecodeQInt32(datagram, ref cur);
-            int messageType = DecodeQInt32(datagram, ref cur);
+            var messageType = (MessageType)DecodeQInt32(datagram, ref cur);
 
-            if (schemaVersion == 2)
+            try
             {
-                if (messageType == HEARTBEAT_MESSAGE_TYPE)
+                if (schemaVersion == 2)
                 {
-                    return HeartbeatMessage.Parse(datagram);
+                    if (messageType == MessageType.HEARTBEAT_MESSAGE_TYPE)
+                    {
+                        return HeartbeatMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.STATUS_MESSAGE_TYPE)
+                    {
+                        return StatusMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.DECODE_MESSAGE_TYPE)
+                    {
+                        return DecodeMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.CLEAR_MESSAGE_TYPE)
+                    {
+                        return ClearMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.QSO_LOGGED_MESSAGE_TYPE)
+                    {
+                        return QsoLoggedMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.CLOSE_MESSAGE_TYPE)
+                    {
+                        return CloseMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.WSPR_DECODE_MESSAGE_TYPE)
+                    {
+                        return WsprDecodeMessage.Parse(datagram);
+                    }
+                    else if (messageType == MessageType.LOGGED_ADIF_MESSAGE_TYPE)
+                    {
+                        return LoggedAdifMessage.Parse(datagram);
+                    }
                 }
-                else if (messageType == STATUS_MESSAGE_TYPE)
-                {
-                    return StatusMessage.Parse(datagram);
-                }
-                else if (messageType == DECODE_MESSAGE_TYPE)
-                {
-                    return DecodeMessage.Parse(datagram);
-                }
-                else if (messageType == CLEAR_MESSAGE_TYPE)
-                {
-                    return ClearMessage.Parse(datagram);
-                }
-                else if (messageType == QSO_LOGGED_MESSAGE_TYPE)
-                {
-                    return QsoLoggedMessage.Parse(datagram);
-                }
-                else if (messageType == CLOSE_MESSAGE_TYPE)
-                {
-                    return CloseMessage.Parse(datagram);
-                }
-                else if (messageType == WSPR_DECODE_MESSAGE_TYPE)
-                {
-                    return WsprDecodeMessage.Parse(datagram);
-                }
-                else if (messageType == LOGGED_ADIF_MESSAGE_TYPE)
-                {
-                    return LoggedAdifMessage.Parse(datagram);
-                }
+            }
+            catch (Exception ex)
+            {
+                throw new ParseFailureException(messageType, datagram, ex);
             }
 
             throw new NotImplementedException($"Schema version {schemaVersion}, message type {messageType}");
@@ -236,6 +247,42 @@ namespace M0LTE.WsjtxUdpLib.Messages
             cur += (int)numBytesInField;
 
             return new string(letters);
+        }
+
+        protected static DateTime DecodeQDateTime(byte[] message, ref int cur)
+        {
+            /*
+             *       QDateTime:
+             *           QDate      qint64    Julian day number
+             *           QTime      quint32   Milli-seconds since midnight
+             *           timespec   quint8    0=local, 1=UTC, 2=Offset from UTC
+             *                                                 (seconds)
+             *                                3=time zone
+             *           offset     qint32    only present if timespec=2
+             *           timezone   several-fields only present if timespec=3
+             *
+             *      we will avoid using QDateTime fields with time zones for simplicity.
+             */
+
+            long julianDay = DecodeQInt32(message, ref cur);
+            var sinceMidnight = DecodeQTime(message, ref cur);
+            byte timespec = DecodeQUInt8(message, ref cur);
+            int offset = DecodeQInt32(message, ref cur);
+
+            DateTimeKind kind;
+            if (timespec == 0) kind = DateTimeKind.Local;
+            else if (timespec == 1) kind = DateTimeKind.Utc;
+            else if (timespec == 2) kind = DateTimeKind.Utc;
+            else if (timespec == 3) throw new NotSupportedException("timespec=3");
+            else throw new NotImplementedException($"timespec={timespec}");
+
+            var date = new DateTime(-4714, 11, 24, 0, 0, 0, kind).AddDays(julianDay);
+            
+            var result = date.Add(sinceMidnight).AddSeconds(offset);
+
+            cur += sizeof(long) + sizeof(uint) + sizeof(byte) + sizeof(int);
+
+            return result;
         }
 
         protected static bool IsQUInt32MaxValue(byte[] message, int cur)

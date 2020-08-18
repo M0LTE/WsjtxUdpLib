@@ -1,4 +1,6 @@
-﻿namespace M0LTE.WsjtxUdpLib.Messages
+﻿using System;
+
+namespace M0LTE.WsjtxUdpLib.Messages
 {
     /*
      * QSO Logged    Out       5                      quint32
@@ -27,9 +29,63 @@
 
     public class QsoLoggedMessage : WsjtxMessage
     {
+        public int SchemaVersion { get; private set; }
+        public string Id { get; private set; }
+        public DateTime DateTimeOff { get; private set; }
+        public string DxCall { get; private set; }
+        public string DxGrid { get; private set; }
+        public ulong TxFrequency { get; private set; }
+        public string Mode { get; private set; }
+        public string ReportSend { get; private set; }
+        public string ReportReceived { get; private set; }
+        public string TxPower { get; private set; }
+        public string Comments { get; private set; }
+        public string Name { get; private set; }
+        public DateTime DateTimeOn { get; private set; }
+        public string OperatorCall { get; private set; }
+        public string MyCall { get; private set; }
+        public string MyGrid { get; private set; }
+        public string ExchangeSent { get; private set; }
+        public string ExchangeReceived { get; private set; }
+
         public static new WsjtxMessage Parse(byte[] message)
         {
-            return new QsoLoggedMessage();
+            if (!CheckMagicNumber(message))
+            {
+                return null;
+            }
+
+            var qsoLoggedMessage = new QsoLoggedMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+            qsoLoggedMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+
+            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+
+            if (messageType != MessageType.QSO_LOGGED_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            qsoLoggedMessage.Id = DecodeString(message, ref cur);
+            qsoLoggedMessage.DateTimeOff = DecodeQDateTime(message, ref cur);
+            qsoLoggedMessage.DxCall = DecodeString(message, ref cur);
+            qsoLoggedMessage.DxGrid = DecodeString(message, ref cur);
+            qsoLoggedMessage.TxFrequency = DecodeQUInt64(message, ref cur);
+            qsoLoggedMessage.Mode = DecodeString(message, ref cur);
+            qsoLoggedMessage.ReportSend = DecodeString(message, ref cur);
+            qsoLoggedMessage.ReportReceived = DecodeString(message, ref cur);
+            qsoLoggedMessage.TxPower = DecodeString(message, ref cur);
+            qsoLoggedMessage.Comments = DecodeString(message, ref cur);
+            qsoLoggedMessage.Name = DecodeString(message, ref cur);
+            qsoLoggedMessage.DateTimeOn = DecodeQDateTime(message, ref cur);
+            qsoLoggedMessage.OperatorCall = DecodeString(message, ref cur);
+            qsoLoggedMessage.MyCall = DecodeString(message, ref cur);
+            qsoLoggedMessage.MyGrid = DecodeString(message, ref cur);
+            qsoLoggedMessage.ExchangeSent = DecodeString(message, ref cur);
+            qsoLoggedMessage.ExchangeReceived = DecodeString(message, ref cur);
+
+            return qsoLoggedMessage;
         }
     }
 }

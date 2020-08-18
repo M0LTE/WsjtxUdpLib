@@ -24,9 +24,36 @@
 
     public class LoggedAdifMessage : WsjtxMessage
     {
+        public string Id { get; private set; }
+        public int SchemaVersion { get; private set; }
+        public string AdifText { get; set; }
+
         public static new WsjtxMessage Parse(byte[] message)
         {
-            return new LoggedAdifMessage();
+            if (!CheckMagicNumber(message))
+            {
+                return null;
+            }
+
+            var loggedAdifMessage = new LoggedAdifMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+            loggedAdifMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+
+            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+
+            if (messageType != MessageType.LOGGED_ADIF_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            loggedAdifMessage.Id = DecodeString(message, ref cur);
+            loggedAdifMessage.AdifText = DecodeString(message, ref cur);
+
+            return loggedAdifMessage;
         }
+
+        public override string ToString() =>
+            $"ADIF      {AdifText}";
     }
 }

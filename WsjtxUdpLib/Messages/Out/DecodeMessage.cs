@@ -132,7 +132,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("Decode   ");
+            sb.Append("Decode    ");
             sb.Append($"{Col(SinceMidnight, 8, Align.Left)} ");
             sb.Append($"{Col(Snr, 3, Align.Right)} ");
             sb.Append($"{Col(DeltaFrequency, 4, Align.Right)} ");
@@ -156,9 +156,9 @@ namespace M0LTE.WsjtxUdpLib.Messages
             int cur = MAGIC_NUMBER_LENGTH;
             decodeMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            int messageType = DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQInt32(message, ref cur);
 
-            if (messageType != DECODE_MESSAGE_TYPE)
+            if (messageType != MessageType.DECODE_MESSAGE_TYPE)
             {
                 return null;
             }

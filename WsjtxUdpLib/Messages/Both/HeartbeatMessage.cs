@@ -49,9 +49,9 @@ namespace M0LTE.WsjtxUdpLib.Messages
             int cur = MAGIC_NUMBER_LENGTH;
             heartbeatMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            int messageType = DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQInt32(message, ref cur);
 
-            if (messageType != HEARTBEAT_MESSAGE_TYPE)
+            if (messageType != MessageType.HEARTBEAT_MESSAGE_TYPE)
             {
                 return null;
             }

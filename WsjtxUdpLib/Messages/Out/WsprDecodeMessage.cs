@@ -53,9 +53,9 @@ namespace M0LTE.WsjtxUdpLib.Messages
             int cur = MAGIC_NUMBER_LENGTH;
             statusMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            int messageType = DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQInt32(message, ref cur);
 
-            if (messageType != WSPR_DECODE_MESSAGE_TYPE)
+            if (messageType != MessageType.WSPR_DECODE_MESSAGE_TYPE)
             {
                 return null;
             }

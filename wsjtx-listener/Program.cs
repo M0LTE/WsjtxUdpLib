@@ -18,7 +18,5 @@ namespace wsjtx_listener
 
             Thread.CurrentThread.Join();
         }
-
-        
     }
 }
