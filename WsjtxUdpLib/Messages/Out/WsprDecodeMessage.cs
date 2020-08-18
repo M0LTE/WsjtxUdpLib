@@ -1,4 +1,6 @@
-﻿namespace M0LTE.WsjtxUdpLib.Messages
+﻿using System;
+
+namespace M0LTE.WsjtxUdpLib.Messages
 {
     /*
      * WSPRDecode    Out       10                     quint32
@@ -26,9 +28,54 @@
 
     public class WsprDecodeMessage : WsjtxMessage
     {
+        public int SchemaVersion { get; private set; }
+        public string Id { get; private set; }
+        public bool New { get; private set; }
+        public TimeSpan StartTime { get; private set; }
+        public int Snr { get; private set; }
+        public double DeltaTime { get; private set; }
+        public ulong Frequency { get; private set; }
+        public int Drift { get; private set; }
+        public string Callsign { get; private set; }
+        public string Grid { get; private set; }
+        public int PowerDbm { get; private set; }
+        public bool FromRecording { get; private set; }
+
         public static new WsjtxMessage Parse(byte[] message)
         {
-            return new WsprDecodeMessage();
+            if (!CheckMagicNumber(message))
+            {
+                return null;
+            }
+
+            var statusMessage = new WsprDecodeMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+            statusMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+
+            int messageType = DecodeQInt32(message, ref cur);
+
+            if (messageType != WSPR_DECODE_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            statusMessage.Id = DecodeString(message, ref cur);
+            statusMessage.New = DecodeBool(message, ref cur);
+            statusMessage.StartTime = DecodeQTime(message, ref cur);
+            statusMessage.Snr = DecodeQInt32(message, ref cur);
+            statusMessage.DeltaTime = DecodeDouble(message, ref cur);
+            statusMessage.Frequency = DecodeQUInt64(message, ref cur);
+            statusMessage.Drift = DecodeQInt32(message, ref cur);
+            statusMessage.Callsign = DecodeString(message, ref cur);
+            statusMessage.Grid = DecodeString(message, ref cur);
+            statusMessage.PowerDbm = DecodeQInt32(message, ref cur);
+            statusMessage.FromRecording = DecodeBool(message, ref cur);
+
+            return statusMessage;
         }
+
+        public override string ToString() =>
+            $"WSPR      new:{New} startTime:{StartTime} snr:{Snr} deltaTime:{DeltaTime} frequency:{Frequency} drift:{Drift} callsign:{Callsign} grid:{Grid} powerDbm:{PowerDbm} fromRecording:{FromRecording}";
     }
 }
