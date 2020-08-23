@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace M0LTE.WsjtxUdpLib.Messages
+namespace M0LTE.WsjtxUdpLib.Messages.Out
 {
     /*
      * QSO Logged    Out       5                      quint32

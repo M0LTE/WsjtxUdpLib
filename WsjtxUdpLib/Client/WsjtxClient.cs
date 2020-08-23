@@ -1,4 +1,5 @@
 ﻿using M0LTE.WsjtxUdpLib.Messages;
+using M0LTE.WsjtxUdpLib.Messages.Out;
 using System;
 using System.IO;
 using System.Net;
@@ -11,11 +12,13 @@ namespace M0LTE.WsjtxUdpLib.Client
     {
         private readonly UdpClient udpClient;
         private readonly Action<WsjtxMessage> callback;
+        private readonly bool debug;
 
-        public WsjtxClient(Action<WsjtxMessage> callback)
+        public WsjtxClient(Action<WsjtxMessage> callback, bool debug = false)
         {
             udpClient = new UdpClient(new IPEndPoint(IPAddress.Loopback, 2237));
             this.callback = callback;
+            this.debug = debug;
             _ = Task.Run(UdpLoop);
         }
 
@@ -42,9 +45,23 @@ namespace M0LTE.WsjtxUdpLib.Client
 
                 if (msg != null)
                 {
+                    if (debug)
+                    {
+                        WriteToDisk(msg);
+                    }
+
                     callback(msg);
                 }
             }
+        }
+
+        private void WriteToDisk(WsjtxMessage msg)
+        {
+            try
+            {
+                File.WriteAllBytes(msg.GetType().Name, msg.Datagram);
+            }
+            catch (Exception) { }
         }
 
         public void Dispose()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using M0LTE.WsjtxUdpLib.Messages.Out;
+using System;
 
 namespace M0LTE.WsjtxUdpLib.Messages
 {

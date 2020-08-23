@@ -1,4 +1,4 @@
-﻿namespace M0LTE.WsjtxUdpLib.Messages
+﻿namespace M0LTE.WsjtxUdpLib.Messages.Out
 {
     /*
      * Logged ADIF    Out      12                     quint32

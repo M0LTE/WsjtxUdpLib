@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace M0LTE.WsjtxUdpLib.Messages
+namespace M0LTE.WsjtxUdpLib.Messages.Out
 {
 
     /// <summary>

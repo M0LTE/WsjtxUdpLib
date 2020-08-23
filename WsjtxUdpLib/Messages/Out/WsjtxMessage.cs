@@ -1,22 +1,10 @@
-﻿using System;
-using System.Globalization;
+﻿using M0LTE.WsjtxUdpLib.Messages.Both;
+using System;
 using System.Linq;
 using System.Net;
 
-namespace M0LTE.WsjtxUdpLib.Messages
+namespace M0LTE.WsjtxUdpLib.Messages.Out
 {
-    public enum MessageType
-    {
-        HEARTBEAT_MESSAGE_TYPE = 0,
-        STATUS_MESSAGE_TYPE = 1,
-        DECODE_MESSAGE_TYPE = 2,
-        CLEAR_MESSAGE_TYPE = 3,
-        QSO_LOGGED_MESSAGE_TYPE = 5,
-        CLOSE_MESSAGE_TYPE = 6,
-        WSPR_DECODE_MESSAGE_TYPE = 10,
-        LOGGED_ADIF_MESSAGE_TYPE = 12,
-    }
-
     public abstract class WsjtxMessage
     {
         protected const int MAGIC_NUMBER_LENGTH = 4;
@@ -37,38 +25,48 @@ namespace M0LTE.WsjtxUdpLib.Messages
             {
                 if (schemaVersion == 2)
                 {
+                    WsjtxMessage result;
+
                     if (messageType == MessageType.HEARTBEAT_MESSAGE_TYPE)
                     {
-                        return HeartbeatMessage.Parse(datagram);
+                        result = HeartbeatMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.STATUS_MESSAGE_TYPE)
                     {
-                        return StatusMessage.Parse(datagram);
+                        result = StatusMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.DECODE_MESSAGE_TYPE)
                     {
-                        return DecodeMessage.Parse(datagram);
+                        result = DecodeMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.CLEAR_MESSAGE_TYPE)
                     {
-                        return ClearMessage.Parse(datagram);
+                        result = ClearMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.QSO_LOGGED_MESSAGE_TYPE)
                     {
-                        return QsoLoggedMessage.Parse(datagram);
+                        result = QsoLoggedMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.CLOSE_MESSAGE_TYPE)
                     {
-                        return CloseMessage.Parse(datagram);
+                        result = CloseMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.WSPR_DECODE_MESSAGE_TYPE)
                     {
-                        return WsprDecodeMessage.Parse(datagram);
+                        result = WsprDecodeMessage.Parse(datagram);
                     }
                     else if (messageType == MessageType.LOGGED_ADIF_MESSAGE_TYPE)
                     {
-                        return LoggedAdifMessage.Parse(datagram);
+                        result = LoggedAdifMessage.Parse(datagram);
                     }
+                    else
+                    {
+                        result = new UnknownMessage();
+                    }
+
+                    result.Datagram = datagram;
+
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -352,5 +350,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
             => message[cur] == 0xff && message[cur + 1] == 0xff && message[cur + 2] == 0xff && message[cur + 3] == 0xff;
 
         protected static bool CheckMagicNumber(byte[] message) => message.Take(4).SequenceEqual(new byte[] { 0xad, 0xbc, 0xcb, 0xda });
+
+        public byte[] Datagram { get; set; }
     }
 }

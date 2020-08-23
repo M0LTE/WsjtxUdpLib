@@ -1,6 +1,7 @@
-﻿using System;
+﻿using M0LTE.WsjtxUdpLib.Messages.Out;
+using System;
 
-namespace M0LTE.WsjtxUdpLib.Messages
+namespace M0LTE.WsjtxUdpLib.Messages.Both
 {
     /*
      * Clear         Out/In    3                      quint32
