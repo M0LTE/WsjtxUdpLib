@@ -26,6 +26,9 @@
     {
         public string Id { get; private set; }
         public int SchemaVersion { get; private set; }
+        /// <summary>
+        /// A complete ADIF file with one record after the header.
+        /// </summary>
         public string AdifText { get; set; }
 
         public static new WsjtxMessage Parse(byte[] message)
