@@ -48,7 +48,7 @@
             }
 
             loggedAdifMessage.Id = DecodeString(message, ref cur);
-            loggedAdifMessage.AdifText = DecodeString(message, ref cur);
+            loggedAdifMessage.AdifText = DecodeString(message, ref cur)?.Trim();
 
             return loggedAdifMessage;
         }
