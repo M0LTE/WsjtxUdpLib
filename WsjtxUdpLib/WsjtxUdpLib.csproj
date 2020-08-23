@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>M0LTE.WsjtxUdpLib</RootNamespace>
+    <Version>1.1</Version>
   </PropertyGroup>
 
 </Project>

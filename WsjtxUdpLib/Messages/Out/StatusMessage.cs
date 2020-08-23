@@ -137,7 +137,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
         public string ConfigurationName { get; set; }
 
         public override string ToString() 
-            => $"Status    dialFrequency:{DialFrequency} mode:{Mode} dxCall:{DxCall} report:{Report} txMode:{TxMode} txEnabled:{TxEnabled} transmitting:{Transmitting} decoding:{Decoding} rxDf:{RxDF} txDf:{TxDF} deCall:{DeCall} deGrid:{DeGrid} dxGrid:{DxGrid} txWatchdog:{TxWatchdog} subMode:{Submode} fastMode:{FastMode} specialOperationsMode:{SpecialOperationMode} freqTolerance:{FrequencyTolerance} trPeriod:{TRPeriod} configName:{ConfigurationName}";
+            => $"Status    {this.ToCompactLine(nameof(Id))}";
     }
 
     public enum SpecialOperationMode : byte

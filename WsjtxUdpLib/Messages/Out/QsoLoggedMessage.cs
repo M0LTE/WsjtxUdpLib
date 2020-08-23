@@ -36,7 +36,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
         public string DxGrid { get; private set; }
         public ulong TxFrequency { get; private set; }
         public string Mode { get; private set; }
-        public string ReportSend { get; private set; }
+        public string ReportSent { get; private set; }
         public string ReportReceived { get; private set; }
         public string TxPower { get; private set; }
         public string Comments { get; private set; }
@@ -68,17 +68,17 @@ namespace M0LTE.WsjtxUdpLib.Messages
             }
 
             qsoLoggedMessage.Id = DecodeString(message, ref cur);
-            qsoLoggedMessage.DateTimeOff = DecodeQDateTime(message, ref cur);
+            qsoLoggedMessage.DateTimeOff = DecodeQDateTimeWithoutTimezone(message, ref cur);
             qsoLoggedMessage.DxCall = DecodeString(message, ref cur);
             qsoLoggedMessage.DxGrid = DecodeString(message, ref cur);
             qsoLoggedMessage.TxFrequency = DecodeQUInt64(message, ref cur);
             qsoLoggedMessage.Mode = DecodeString(message, ref cur);
-            qsoLoggedMessage.ReportSend = DecodeString(message, ref cur);
+            qsoLoggedMessage.ReportSent = DecodeString(message, ref cur);
             qsoLoggedMessage.ReportReceived = DecodeString(message, ref cur);
             qsoLoggedMessage.TxPower = DecodeString(message, ref cur);
             qsoLoggedMessage.Comments = DecodeString(message, ref cur);
             qsoLoggedMessage.Name = DecodeString(message, ref cur);
-            qsoLoggedMessage.DateTimeOn = DecodeQDateTime(message, ref cur);
+            qsoLoggedMessage.DateTimeOn = DecodeQDateTimeWithoutTimezone(message, ref cur);
             qsoLoggedMessage.OperatorCall = DecodeString(message, ref cur);
             qsoLoggedMessage.MyCall = DecodeString(message, ref cur);
             qsoLoggedMessage.MyGrid = DecodeString(message, ref cur);
@@ -87,5 +87,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
             return qsoLoggedMessage;
         }
+
+        public override string ToString() => $"QSOLogged {this.ToCompactLine(nameof(Id))}";
     }
 }

@@ -76,6 +76,6 @@ namespace M0LTE.WsjtxUdpLib.Messages
         }
 
         public override string ToString() =>
-            $"WSPR      new:{New} startTime:{StartTime} snr:{Snr} deltaTime:{DeltaTime} frequency:{Frequency} drift:{Drift} callsign:{Callsign} grid:{Grid} powerDbm:{PowerDbm} fromRecording:{FromRecording}";
+            $"WSPR      {this.ToCompactLine(nameof(Id))}";
     }
 }

@@ -146,6 +146,13 @@ namespace M0LTE.WsjtxUdpLib.Messages
             return result;
         }
 
+        protected static long DecodeQInt64(byte[] message, ref int cur)
+        {
+            var result = IPAddress.NetworkToHostOrder(BitConverter.ToInt64(message, cur));
+            cur += sizeof(long);
+            return result;
+        }
+
         protected static byte DecodeQUInt8(byte[] message, ref int cur)
         {
             var result = (byte)IPAddress.NetworkToHostOrder(message[cur]);
@@ -225,14 +232,14 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
         protected static TimeSpan DecodeQTime(byte[] message, ref int cur)
         {
-            return TimeSpan.FromMilliseconds(DecodeQInt32(message, ref cur));
+            return TimeSpan.FromMilliseconds(DecodeQUInt32(message, ref cur));
         }
 
         protected static string DecodeString(byte[] message, ref int cur)
         {
             if (IsQUInt32MaxValue(message, cur))
             {
-                cur += sizeof(UInt32);
+                cur += sizeof(uint);
                 return null;
             }
 
@@ -246,10 +253,17 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
             cur += (int)numBytesInField;
 
-            return new string(letters);
+            var str = new string(letters);
+
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                return null;
+            }
+
+            return str;
         }
 
-        protected static DateTime DecodeQDateTime(byte[] message, ref int cur)
+        protected static DateTime DecodeQDateTimeWithoutTimezone(byte[] message, ref int cur)
         {
             /*
              *       QDateTime:
@@ -264,27 +278,76 @@ namespace M0LTE.WsjtxUdpLib.Messages
              *      we will avoid using QDateTime fields with time zones for simplicity.
              */
 
-            long julianDay = DecodeQInt32(message, ref cur);
-            var sinceMidnight = DecodeQTime(message, ref cur);
+            long julianDay = DecodeQInt64(message, ref cur);
+            var sinceMidnightUtc = DecodeQTime(message, ref cur);
             byte timespec = DecodeQUInt8(message, ref cur);
-            int offset = DecodeQInt32(message, ref cur);
 
+            int offset = 0;
             DateTimeKind kind;
-            if (timespec == 0) kind = DateTimeKind.Local;
-            else if (timespec == 1) kind = DateTimeKind.Utc;
-            else if (timespec == 2) kind = DateTimeKind.Utc;
-            else if (timespec == 3) throw new NotSupportedException("timespec=3");
+
+            if (timespec == 0)
+            {
+                kind = DateTimeKind.Local;
+            }
+            else if (timespec == 1)
+            {
+                kind = DateTimeKind.Utc;
+            }
+            else if (timespec == 2)
+            {
+                kind = DateTimeKind.Utc;
+                offset = DecodeQInt32(message, ref cur);
+            }
+            else if (timespec == 3)
+            {
+                throw new NotSupportedException("timespec=3");
+            }
             else throw new NotImplementedException($"timespec={timespec}");
 
-            var date = new DateTime(-4714, 11, 24, 0, 0, 0, kind).AddDays(julianDay);
-            
-            var result = date.Add(sinceMidnight).AddSeconds(offset);
+            var date = DateTime.SpecifyKind(JulianDayNumberToDateMeeus(julianDay), kind);
 
-            cur += sizeof(long) + sizeof(uint) + sizeof(byte) + sizeof(int);
+            var result = date.Add(sinceMidnightUtc).AddSeconds(offset);
 
             return result;
         }
 
+        /// <summary>
+        /// Converts a Julian day to a calendar DateTime.
+        /// https://stackoverflow.com/a/52340035/17971
+        /// </summary>
+        static DateTime JulianDayNumberToDateMeeus(double jDNum) 
+        {
+            int alpha, A, B, C, D, E, Z;
+            double F;
+
+            jDNum += 0.5;
+            Z = (int)jDNum;  // Z == int so I = int part
+            F = jDNum - Z;   // F =  fractional part
+            
+            if (Z < 2299161)
+            { 
+                //Julian?
+                A = Z;
+            }
+            else
+            {  
+                //Gregorian
+                alpha = (int)Math.Floor((Z - 1867216.25) / 36524.25);
+                A = Z + 1 + alpha - (int)Math.Floor(alpha / 4.0);
+            }
+
+            B = A + 1524;
+            C = (int)Math.Floor((B - 122.1) / 365.25);
+            D = (int)Math.Floor(365.25 * C);
+            E = (int)Math.Floor((B - D) / 30.6001);
+
+            int day = (int)(B - D - (int)Math.Floor(30.6001 * E) + F);
+            int month = E < 14 ? E - 1 : E - 13;
+            int year = month > 2 ? C - 4716 : C - 4715;
+
+            return new DateTime(year, month, day);
+        }
+        
         protected static bool IsQUInt32MaxValue(byte[] message, int cur)
             => message[cur] == 0xff && message[cur + 1] == 0xff && message[cur + 2] == 0xff && message[cur + 3] == 0xff;
 
