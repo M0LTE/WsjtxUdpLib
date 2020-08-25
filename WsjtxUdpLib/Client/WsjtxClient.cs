@@ -14,9 +14,18 @@ namespace M0LTE.WsjtxUdpLib.Client
         private readonly Action<WsjtxMessage> callback;
         private readonly bool debug;
 
-        public WsjtxClient(Action<WsjtxMessage> callback, bool debug = false)
+        public WsjtxClient(Action<WsjtxMessage> callback, IPAddress ipAddress, int port = 2237, bool multicast = false, bool debug = false)
         {
-            udpClient = new UdpClient(new IPEndPoint(IPAddress.Loopback, 2237));
+            if (multicast)
+            {
+                udpClient = new UdpClient(port, ipAddress.AddressFamily);
+                udpClient.JoinMulticastGroup(ipAddress);
+            }
+            else
+            {
+                udpClient = new UdpClient(new IPEndPoint(ipAddress, port));
+            }
+
             this.callback = callback;
             this.debug = debug;
             _ = Task.Run(UdpLoop);
