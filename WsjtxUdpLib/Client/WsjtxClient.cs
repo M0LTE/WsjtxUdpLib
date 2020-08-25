@@ -18,7 +18,9 @@ namespace M0LTE.WsjtxUdpLib.Client
         {
             if (multicast)
             {
-                udpClient = new UdpClient(port, ipAddress.AddressFamily);
+                udpClient = new UdpClient();
+                udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
                 udpClient.JoinMulticastGroup(ipAddress);
             }
             else
