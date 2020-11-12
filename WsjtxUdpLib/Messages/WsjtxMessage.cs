@@ -1,9 +1,12 @@
 ﻿using M0LTE.WsjtxUdpLib.Messages.Both;
+using M0LTE.WsjtxUdpLib.Messages.Out;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 
-namespace M0LTE.WsjtxUdpLib.Messages.Out
+namespace M0LTE.WsjtxUdpLib.Messages
 {
     public abstract class WsjtxMessage
     {
@@ -158,13 +161,9 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             return result;
         }
 
-        static bool reverseByteOrder = BitConverter.IsLittleEndian;
-
         protected static uint DecodeQUInt32(byte[] message, ref int cur)
         {
-            byte[] digits = message.Skip(cur).Take(sizeof(uint)).ToArray();
-
-            uint result = reverseByteOrder
+            uint result = Qt.ReverseByteOrder
                 ? BitConverter.ToUInt32(message.Skip(cur).Take(sizeof(uint)).Reverse().ToArray(), 0)
                 : BitConverter.ToUInt32(message, cur);
 
@@ -181,7 +180,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
                     return null;
                 }
 
-                uint result = reverseByteOrder
+                uint result = Qt.ReverseByteOrder
                     ? BitConverter.ToUInt32(message.Skip(cur).Take(sizeof(uint)).Reverse().ToArray(), 0)
                     : BitConverter.ToUInt32(message, cur);
 
@@ -195,7 +194,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
 
         protected static UInt64 DecodeQUInt64(byte[] message, ref int cur)
         {
-            var result = reverseByteOrder
+            var result = Qt.ReverseByteOrder
                 ? BitConverter.ToUInt64(message.Skip(cur).Take(sizeof(UInt64)).Reverse().ToArray(), 0)
                 : BitConverter.ToUInt64(message, cur);
 
@@ -206,7 +205,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
         protected static double DecodeDouble(byte[] message, ref int cur)
         {
             double result;
-            if (reverseByteOrder)
+            if (Qt.ReverseByteOrder)
             {
                 // x64
                 result = BitConverter.ToDouble(message.Skip(cur).Take(sizeof(double)).Reverse().ToArray(), 0);
@@ -345,12 +344,17 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
 
             return new DateTime(year, month, day);
         }
-        
-        protected static bool IsQUInt32MaxValue(byte[] message, int cur)
-            => message[cur] == 0xff && message[cur + 1] == 0xff && message[cur + 2] == 0xff && message[cur + 3] == 0xff;
 
-        protected static bool CheckMagicNumber(byte[] message) => message.Take(4).SequenceEqual(new byte[] { 0xad, 0xbc, 0xcb, 0xda });
+        protected static bool IsQUInt32MaxValue(byte[] message, int cur)
+        {
+            return message[cur] == 0xff && message[cur + 1] == 0xff && message[cur + 2] == 0xff && message[cur + 3] == 0xff;
+        }
+
+        protected static bool CheckMagicNumber(byte[] message) => message.Take(4).SequenceEqual(MAGIC_NUMBER);
 
         public byte[] Datagram { get; set; }
-    }
+
+        public readonly static byte[] MAGIC_NUMBER = new byte[] { 0xad, 0xbc, 0xcb, 0xda };
+        public readonly static byte[] SCHEMA_VERSION = new byte[] { 0, 0, 0, 2 };
+}
 }

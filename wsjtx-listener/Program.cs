@@ -1,9 +1,6 @@
 ﻿using M0LTE.WsjtxUdpLib.Client;
-using M0LTE.WsjtxUdpLib.Messages;
 using System;
-using System.Diagnostics;
 using System.Net;
-using System.Text;
 using System.Threading;
 
 namespace wsjtx_listener
@@ -12,7 +9,10 @@ namespace wsjtx_listener
     {
         static void Main(string[] args)
         {
-            using var client = new WsjtxClient(Console.WriteLine, IPAddress.Parse("239.1.2.3"), multicast: true, debug: true);
+            using var client = new WsjtxClient((msg, from) =>
+            {
+                Console.WriteLine(msg);
+            }, IPAddress.Parse("239.255.0.1"), multicast: true, debug: true);
 
             Thread.CurrentThread.Join();
         }

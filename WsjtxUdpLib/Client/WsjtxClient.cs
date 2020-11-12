@@ -11,10 +11,10 @@ namespace M0LTE.WsjtxUdpLib.Client
     public sealed class WsjtxClient : IDisposable
     {
         private readonly UdpClient udpClient;
-        private readonly Action<WsjtxMessage> callback;
+        private readonly Action<WsjtxMessage, IPEndPoint> callback;
         private readonly bool debug;
 
-        public WsjtxClient(Action<WsjtxMessage> callback, IPAddress ipAddress, int port = 2237, bool multicast = false, bool debug = false)
+        public WsjtxClient(Action<WsjtxMessage, IPEndPoint> callback, IPAddress ipAddress, int port = 2237, bool multicast = false, bool debug = false)
         {
             if (multicast)
             {
@@ -32,6 +32,8 @@ namespace M0LTE.WsjtxUdpLib.Client
             this.debug = debug;
             _ = Task.Run(UdpLoop);
         }
+
+        //Random random = new Random();
 
         private void UdpLoop()
         {
@@ -60,8 +62,23 @@ namespace M0LTE.WsjtxUdpLib.Client
                     {
                         WriteToDisk(msg);
                     }
+                    /*
+                    if (msg is DecodeMessage dm)
+                    {
+                        var highlightMessage = new HighlightCallsignMessage
+                        {
+                            Id = "test",
+                            Callsign = dm.Message,
+                            BackgroundColour = new Colour { Red = 0xff, Green = 0xff, Blue = 0xff },
+                            ForegroundColour = new Colour { Red = (byte)random.Next(256), Green = (byte)random.Next(256), Blue = (byte)random.Next(256) },
+                            HighlightLast = true
+                        };
 
-                    callback(msg);
+                        var dg = highlightMessage.GetBytes();
+                        udpClient.Send(dg, dg.Length, from);
+                    }*/
+
+                    callback(msg, from);
                 }
             }
         }

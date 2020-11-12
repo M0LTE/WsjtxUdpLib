@@ -1,4 +1,4 @@
-﻿namespace M0LTE.WsjtxUdpLib.Messages.Out
+﻿namespace M0LTE.WsjtxUdpLib.Messages
 {
     public enum MessageType
     {
@@ -10,5 +10,6 @@
         CLOSE_MESSAGE_TYPE = 6,
         WSPR_DECODE_MESSAGE_TYPE = 10,
         LOGGED_ADIF_MESSAGE_TYPE = 12,
+        HIGHLIGHT_CALLSIGN_MESSAGE_TYPE = 13
     }
 }
