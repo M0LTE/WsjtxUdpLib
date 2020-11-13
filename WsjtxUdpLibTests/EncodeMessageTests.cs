@@ -80,6 +80,8 @@ namespace WsjtxUdpLibTests
             var dg = msg.GetBytes();
 
             Assert.Equal(new byte[] {
+                0xad, 0xbc, 0xcb, 0xda, // magic number
+                0,0,0,2,  // schema
                 0,0,0,13, // message type 13
                 0,0,0,4, (byte)'t',(byte)'e',(byte)'s',(byte)'t', // Id
                 0,0,0,1, (byte)'J',  // callsign
