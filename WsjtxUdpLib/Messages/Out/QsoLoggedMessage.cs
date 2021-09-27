@@ -19,8 +19,11 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
      *                         Operator call          utf8
      *                         My call                utf8
      *                         My grid                utf8
+     *                         
+     *                         WSJT-X only:
      *                         Exchange sent          utf8
      *                         Exchange received      utf8
+     *                         ADIF Propagation mode  utf8
      *
      *      The  QSO logged  message is  sent  to the  server(s) when  the
      *      WSJT-X user accepts the "Log  QSO" dialog by clicking the "OK"
@@ -47,6 +50,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
         public string MyGrid { get; private set; }
         public string ExchangeSent { get; private set; }
         public string ExchangeReceived { get; private set; }
+        public string AdifPropagationMode { get; private set; }
 
         public static new WsjtxMessage Parse(byte[] message)
         {
@@ -60,7 +64,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             int cur = MAGIC_NUMBER_LENGTH;
             qsoLoggedMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.QSO_LOGGED_MESSAGE_TYPE)
             {
@@ -82,8 +86,21 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             qsoLoggedMessage.OperatorCall = DecodeString(message, ref cur);
             qsoLoggedMessage.MyCall = DecodeString(message, ref cur);
             qsoLoggedMessage.MyGrid = DecodeString(message, ref cur);
-            qsoLoggedMessage.ExchangeSent = DecodeString(message, ref cur);
-            qsoLoggedMessage.ExchangeReceived = DecodeString(message, ref cur);
+
+            if (message.Length > cur)
+            {
+                qsoLoggedMessage.ExchangeSent = DecodeString(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                qsoLoggedMessage.ExchangeReceived = DecodeString(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                qsoLoggedMessage.AdifPropagationMode = DecodeString(message, ref cur);
+            }
 
             return qsoLoggedMessage;
         }

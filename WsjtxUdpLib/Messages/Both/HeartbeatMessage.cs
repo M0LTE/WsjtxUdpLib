@@ -48,9 +48,9 @@ namespace M0LTE.WsjtxUdpLib.Messages
             var heartbeatMessage = new HeartbeatMessage();
 
             int cur = MAGIC_NUMBER_LENGTH;
-            heartbeatMessage.SchemaVersion = DecodeQInt32(message, ref cur);
+            heartbeatMessage.SchemaVersion = (int)DecodeQUInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.HEARTBEAT_MESSAGE_TYPE)
             {
@@ -58,20 +58,23 @@ namespace M0LTE.WsjtxUdpLib.Messages
             }
 
             heartbeatMessage.Id = DecodeString(message, ref cur);
-            heartbeatMessage.MaxSchemaNumber = DecodeQUInt32(message, ref cur);
+            heartbeatMessage.MaxSchemaNumber = (int)DecodeQUInt32(message, ref cur);
             heartbeatMessage.Version = DecodeString(message, ref cur);
-            heartbeatMessage.Revision = DecodeString(message, ref cur);
+            if (message.Length > cur) // JTDX
+            {
+                heartbeatMessage.Revision = DecodeString(message, ref cur);
+            }
 
             return heartbeatMessage;
         }
 
         public int SchemaVersion { get; set; }
         public string Id { get; set; }
-        public uint MaxSchemaNumber { get; set; }
+        public int MaxSchemaNumber { get; set; }
         public string Version { get; set; }
         public string Revision { get; set; }
 
-        public override string ToString() => $"Heartbeat id:{Id} maxSchemaNumber:{MaxSchemaNumber} version:{Version} revision:{Revision}";
+        public override string ToString() => $"Heartbeat id:{Id} maxSchemaNumber:{MaxSchemaNumber} version:{Version}{(Revision == null ? "" : $"revision:{Revision}")}";
 
         public byte[] GetBytes() => throw new NotImplementedException();
     }

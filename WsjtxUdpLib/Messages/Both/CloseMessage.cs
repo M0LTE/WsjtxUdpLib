@@ -14,8 +14,36 @@ namespace M0LTE.WsjtxUdpLib.Messages
 
     public class CloseMessage : WsjtxMessage, IWsjtxCommandMessageGenerator
     {
-        public static new WsjtxMessage Parse(byte[] message) => new CloseMessage();
+        public int SchemaVersion { get; set; }
+        public string Id { get; set; }
+
+        public static new WsjtxMessage Parse(byte[] datagram)
+        {
+            if (!CheckMagicNumber(datagram))
+            {
+                return null;
+            }
+
+            var message = new CloseMessage();
+
+            int cur = MAGIC_NUMBER_LENGTH;
+
+            message.SchemaVersion = (int)DecodeQUInt32(datagram, ref cur);
+
+            var messageType = (MessageType)DecodeQUInt32(datagram, ref cur);
+
+            if (messageType != MessageType.CLOSE_MESSAGE_TYPE)
+            {
+                return null;
+            }
+
+            message.Id = DecodeString(datagram, ref cur);
+
+            return message;
+        }
 
         public byte[] GetBytes() => throw new NotImplementedException();
+
+        public override string ToString() => $"Close id:{Id}";
     }
 }

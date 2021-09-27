@@ -156,7 +156,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             int cur = MAGIC_NUMBER_LENGTH;
             decodeMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.DECODE_MESSAGE_TYPE)
             {

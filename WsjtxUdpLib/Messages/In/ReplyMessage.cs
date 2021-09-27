@@ -11,6 +11,8 @@ namespace M0LTE.WsjtxUdpLib.Messages
      *                         Delta frequency (Hz)   quint32
      *                         Mode                   utf8
      *                         Message                utf8
+     *                         
+     *                         WSJT-X only:
      *                         Low confidence         bool
      *                         Modifiers              quint8
      *

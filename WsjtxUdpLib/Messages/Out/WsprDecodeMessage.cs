@@ -14,6 +14,8 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
      *                         Callsign               utf8
      *                         Grid                   utf8
      *                         Power (dBm)            qint32
+     *                         
+     *                         WSJT-X only:
      *                         Off air                bool
      *
      *      The decode message is sent when  a new decode is completed, in
@@ -39,7 +41,10 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
         public string Callsign { get; private set; }
         public string Grid { get; private set; }
         public int PowerDbm { get; private set; }
-        public bool FromRecording { get; private set; }
+        /// <summary>
+        /// The off air field indicates that the decode was decoded from a played back recording.
+        /// </summary>
+        public bool? OffAir { get; private set; }
 
         public static new WsjtxMessage Parse(byte[] message)
         {
@@ -53,7 +58,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             int cur = MAGIC_NUMBER_LENGTH;
             statusMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.WSPR_DECODE_MESSAGE_TYPE)
             {
@@ -70,7 +75,11 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             statusMessage.Callsign = DecodeString(message, ref cur);
             statusMessage.Grid = DecodeString(message, ref cur);
             statusMessage.PowerDbm = DecodeQInt32(message, ref cur);
-            statusMessage.FromRecording = DecodeBool(message, ref cur);
+
+            if (message.Length > cur)
+            {
+                statusMessage.OffAir = DecodeBool(message, ref cur);
+            }
 
             return statusMessage;
         }

@@ -43,7 +43,7 @@
             int cur = MAGIC_NUMBER_LENGTH;
             loggedAdifMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.LOGGED_ADIF_MESSAGE_TYPE)
             {

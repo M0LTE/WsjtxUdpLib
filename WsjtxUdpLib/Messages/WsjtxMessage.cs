@@ -1,10 +1,9 @@
 ﻿using M0LTE.WsjtxUdpLib.Messages.Both;
 using M0LTE.WsjtxUdpLib.Messages.Out;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 
 namespace M0LTE.WsjtxUdpLib.Messages
 {
@@ -22,7 +21,7 @@ namespace M0LTE.WsjtxUdpLib.Messages
             int cur = MAGIC_NUMBER_LENGTH;
 
             int schemaVersion = DecodeQInt32(datagram, ref cur);
-            var messageType = (MessageType)DecodeQInt32(datagram, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(datagram, ref cur);
 
             try
             {

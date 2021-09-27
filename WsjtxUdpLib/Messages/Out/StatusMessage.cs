@@ -23,10 +23,15 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
          *                         Tx Watchdog            bool
          *                         Sub-mode               utf8
          *                         Fast mode              bool
+         *                         
+         *                         WSJT-X only:
          *                         Special Operation Mode quint8
          *                         Frequency Tolerance    quint32
          *                         T/R Period             quint32
          *                         Configuration Name     utf8
+         *                         
+         *                         JTDX only:
+         *                         Tx first               bool
          *
          *    WSJT-X  sends this  status message  when various  internal state
          *    changes to allow the server to  track the relevant state of each
@@ -81,7 +86,7 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             int cur = MAGIC_NUMBER_LENGTH;
             statusMessage.SchemaVersion = DecodeQInt32(message, ref cur);
 
-            var messageType = (MessageType)DecodeQInt32(message, ref cur);
+            var messageType = (MessageType)DecodeQUInt32(message, ref cur);
 
             if (messageType != MessageType.STATUS_MESSAGE_TYPE)
             {
@@ -97,18 +102,52 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
             statusMessage.TxEnabled = DecodeBool(message, ref cur);
             statusMessage.Transmitting = DecodeBool(message, ref cur);
             statusMessage.Decoding = DecodeBool(message, ref cur);
-            statusMessage.RxDF = DecodeQUInt32(message, ref cur);
-            statusMessage.TxDF = DecodeQUInt32(message, ref cur);
+            if (statusMessage.Id == "JTDX")
+            {
+                statusMessage.RxDF = DecodeQInt32(message, ref cur);
+                statusMessage.TxDF = DecodeQInt32(message, ref cur);
+            }
+            else
+            {
+                statusMessage.RxDF = (int)DecodeQUInt32(message, ref cur);
+                statusMessage.TxDF = (int)DecodeQUInt32(message, ref cur);
+            }
             statusMessage.DeCall = DecodeString(message, ref cur);
             statusMessage.DeGrid = DecodeString(message, ref cur);
             statusMessage.DxGrid = DecodeString(message, ref cur);
             statusMessage.TxWatchdog = DecodeBool(message, ref cur);
             statusMessage.Submode = DecodeString(message, ref cur);
             statusMessage.FastMode = DecodeBool(message, ref cur);
-            statusMessage.SpecialOperationMode = (SpecialOperationMode)DecodeQUInt8(message, ref cur);
-            statusMessage.FrequencyTolerance = DecodeNullableQUInt32(message, ref cur);
-            statusMessage.TRPeriod = DecodeNullableQUInt32(message, ref cur);
-            statusMessage.ConfigurationName = DecodeString(message, ref cur);
+
+            if (statusMessage.Id == "JTDX" && message.Length == cur+1)
+            {
+                statusMessage.TxFirst = DecodeBool(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                statusMessage.SpecialOperationMode = (SpecialOperationMode)DecodeQUInt8(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                statusMessage.FrequencyTolerance = DecodeNullableQUInt32(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                statusMessage.TRPeriod = DecodeNullableQUInt32(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                statusMessage.ConfigurationName = DecodeString(message, ref cur);
+            }
+
+            if (message.Length > cur)
+            {
+                statusMessage.TxMessage = DecodeString(message, ref cur);
+            }
 
             return statusMessage;
         }
@@ -123,18 +162,20 @@ namespace M0LTE.WsjtxUdpLib.Messages.Out
         public bool TxEnabled { get; set; }
         public bool Transmitting { get; set; }
         public bool Decoding { get; set; }
-        public UInt32 RxDF { get; set; }
-        public UInt32 TxDF { get; set; }
+        public int RxDF { get; set; }
+        public int TxDF { get; set; }
         public string DeCall { get; set; }
         public string DeGrid { get; set; }
         public string DxGrid { get; set; }
         public bool TxWatchdog { get; set; }
         public string Submode { get; set; }
         public bool FastMode { get; set; }
-        public SpecialOperationMode SpecialOperationMode { get; set; }
+        public SpecialOperationMode? SpecialOperationMode { get; set; }
         public uint? FrequencyTolerance { get; set; }
         public uint? TRPeriod { get; set; }
         public string ConfigurationName { get; set; }
+        public string TxMessage { get; set; }
+        public bool? TxFirst { get; set; }
 
         public override string ToString() 
             => $"Status    {this.ToCompactLine(nameof(Id))}";
